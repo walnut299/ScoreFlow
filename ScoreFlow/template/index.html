@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학생 성적 관리 시스템</title>
+    <link href="/static/css/base.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div class="container">
+        <h1>학생 성적 관리 시스템</h1>
+        
+        <button id="openStudentModal" class="btn">학생 등록</button>
+        <button id="openGradeModal" class="btn">성적 추가</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>과목</th>
+                    <th>점수</th>
+                    <th>학급</th>
+                </tr>
+            </thead>
+            <tbody id="dynamicTable">
+            </tbody>
+        </table>
+    </div>
+
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>학생 등록</h2>
+            <form>
+                <div class="form-group">
+                    <label for="studentName">이름</label>
+                    <input type="text" id="studentName" name="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentId">학번</label>
+                    <input type="text" id="studentId" name="studentId" required>
+                </div>
+                <div class="form-group">
+                    <label for="studentClass">학급</label>
+                    <input type="text" id="studentClass" name="studentClass" required>
+                </div>
+                <button type="button" class="btn" onclick="saveUser()">등록</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="gradeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>성적 추가</h2>
+            <form>
+                <div class="form-group">
+                    <label for="name">이름</label>
+                    <select id="name" name="name">
+
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subject">과목</label>
+                    <select  id="subject" name="subject"> 
+                        <option value="국어">국어</option>                        
+                        <option value="수학">수학</option>        
+                        <option value="영어">영어</option>        
+                        <option value="과학">과학</option>        
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="score">점수</label>
+                    <input type="text" id="score" name="score" required>
+                </div>
+                <button type="button" class="btn" onclick="saveScore()">성적 추가</button>
+            </form>
+        </div>
+    </div>
+    <script src="/static/js/jquery.js"></script>
+    <script src="/static/js/base.js"></script>
+    <script>
+        $(document).ready(function() {
+            findListStudent();
+            findListMainData();
+        });
+
+        function saveUser() {
+            $.ajax({
+                    url: '/saveStudent',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        studentName: $("#studentName").val(),
+                        studentId: $("#studentId").val(),
+                        studentClass: $("#studentClass").val(),
+                    }),
+                    contentType: 'application/json; charset=UTF-8',
+                    success: function(data) {
+                        alert("학생 등록 성공");
+                        $("#studentName").val("");
+                        $("#studentId").val("");
+                        $("#studentClass").val("");
+                        findListStudent();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(`error:${error}`);
+                        alert("학생 등록 실패");
+                    }
+                });
+        }
+
+        function saveScore() {
+            $.ajax({
+                    url: '/saveScore',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        studentId: $("#name").val(),
+                        subject: $("#subject").val(),
+                        score: $("#score").val(),
+                    }),
+                    contentType: 'application/json; charset=UTF-8',
+                    success: function(data) {
+                        alert("성적 등록 성공");
+                        $("#score").val("");
+                        findListMainData();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(`error:${error}`);
+                        alert("성적 등록 실패");
+                    }
+                });
+        }
+
+        function findListStudent() {
+            $.ajax({
+                    url: '/findListStudent',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        op: 1
+                    }),
+                    contentType: 'application/json; charset=UTF-8',
+                    success: function(data) {
+                        str = ``;
+                        data.forEach((element) => {
+                            str += `<option value="${element.student_sq}">${element.student_name}</option>`
+                        });
+                        $("#name").empty();
+                        $("#name").html(str);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(`error:${error}`);
+                        alert("findListStudent 실패");
+                    }
+                });
+        }
+
+        function findListMainData() {
+            $.ajax({
+                    url: '/findListMainData',
+                    type: 'POST',
+                    data: JSON.stringify({
+                        op: 1
+                    }),
+                    contentType: 'application/json; charset=UTF-8',
+                    success: function(data) {
+                        str = ``;
+                        data.forEach((element) => {
+                            str += `<tr>
+                                        <td>${element.STUDENT_NAME}</td>
+                                        <td>${element.SUBJECT_NAME}</td>
+                                        <td>${element.MARK}</td>
+                                        <td>${element.STUDENT_CLASS}</td>
+                                    </tr>`
+                        });
+                        $("#dynamicTable").empty();
+                        $("#dynamicTable").html(str);
+
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(`error:${error}`);
+                        alert("findListStudent 실패");
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
